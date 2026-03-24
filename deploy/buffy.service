@@ -1,0 +1,17 @@
+[Unit]
+Description=Buffy Plex playback notifier
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/buffy
+ExecStart=/opt/buffy/.venv/bin/python -m buffy
+Restart=always
+RestartSec=10
+User=buffy
+Group=buffy
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

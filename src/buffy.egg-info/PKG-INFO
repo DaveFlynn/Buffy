@@ -1,0 +1,70 @@
+Metadata-Version: 2.4
+Name: buffy
+Version: 0.1.0
+Summary: Plex playback notifier for Telegram
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: requests<3.0.0,>=2.32.0
+
+# Buffy
+
+Buffy is a small polling service that watches a Plex server for newly started video playback sessions and posts a Telegram notification to a group chat.
+
+Each notification includes:
+
+- Title
+- User who started watching
+- Player name
+- Length
+- Year
+- Synopsis
+- Rotten Tomatoes rating when OMDb can resolve the title
+- Poster art uploaded from Plex when artwork is available
+
+## Requirements
+
+- Python 3.11+
+- A Plex token with access to the server
+- A Telegram bot token and target chat ID
+- Optional: an OMDb API key for ratings enrichment
+
+## Setup
+
+1. Select the project Python with `pyenv`:
+
+   ```bash
+   pyenv local 3.11.13
+   ```
+
+2. Create a virtual environment and install dependencies:
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -e .
+   ```
+
+3. Copy `.env.example` values into your environment:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Notes:
+
+   - `PLEX_TOKEN`: use a Plex token from a browser session or a managed service account with access to the library.
+   - `TELEGRAM_CHAT_ID`: add the bot to the target group, send a message once, then inspect `getUpdates` on the Bot API to find the numeric chat ID.
+   - `OMDB_API_KEY`: optional, but needed for Rotten Tomatoes or IMDb ratings.
+   - `.env` is loaded automatically on startup; existing shell environment variables still win if both are set.
+
+4. Run the notifier:
+
+   ```bash
+   python -m buffy
+   ```
+
+## Notes
+
+- The service polls `/status/sessions` and sends one notification per active playback session.
+- It stores active Plex session IDs in `.state/active_sessions.json` so a process restart does not spam duplicate alerts for sessions that are already in progress.
+- OMDb is used for ratings because it exposes Rotten Tomatoes data when available.

@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.venv/
+.state/
+__pycache__/
+*.pyc
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
