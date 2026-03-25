@@ -13,6 +13,8 @@ class Settings:
     telegram_chat_id: str
     omdb_api_key: str | None
     poll_interval_seconds: int
+    notification_delay_minutes: int | None
+    repeat_play_suppression_minutes: int | None
     state_file: Path
 
 
@@ -47,6 +49,8 @@ def _require_env(name: str) -> str:
 
 def load_settings() -> Settings:
     load_dotenv()
+    notification_delay_minutes_raw = os.getenv("NOTIFICATION_DELAY_MINUTES")
+    repeat_play_suppression_minutes_raw = os.getenv("REPEAT_PLAY_SUPPRESSION_MINUTES")
     return Settings(
         plex_base_url=_require_env("PLEX_BASE_URL").rstrip("/"),
         plex_token=_require_env("PLEX_TOKEN"),
@@ -54,5 +58,15 @@ def load_settings() -> Settings:
         telegram_chat_id=_require_env("TELEGRAM_CHAT_ID"),
         omdb_api_key=os.getenv("OMDB_API_KEY") or None,
         poll_interval_seconds=int(os.getenv("POLL_INTERVAL_SECONDS", "15")),
+        notification_delay_minutes=(
+            int(notification_delay_minutes_raw)
+            if notification_delay_minutes_raw
+            else None
+        ),
+        repeat_play_suppression_minutes=(
+            int(repeat_play_suppression_minutes_raw)
+            if repeat_play_suppression_minutes_raw
+            else None
+        ),
         state_file=Path(os.getenv("STATE_FILE", ".state/active_sessions.json")),
     )

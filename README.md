@@ -52,20 +52,22 @@ Each notification can include:
 - A Plex token with access to the server
 - A Telegram bot token and target chat ID
 - Optional: an OMDb API key for ratings enrichment
+- Optional: `NOTIFICATION_DELAY_MINUTES` to wait before sending a play alert
+- Optional: `REPEAT_PLAY_SUPPRESSION_MINUTES` to suppress quick repeat alerts for the same user and same video
 
 ## Linux Deployment
 
 For a small always-on server, `systemd` is the simplest deployment target. If Buffy runs on the same box as Plex, use `PLEX_BASE_URL=http://127.0.0.1:32400` in `.env`.
 
 1. Copy the project to the Linux server, for example to `/opt/buffy`.
-2. Install Python 3.11 and create a dedicated service account:
+2. Make sure the directory is owned by your normal Linux user:
 
    ```bash
-   sudo useradd --system --create-home --home-dir /opt/buffy --shell /usr/sbin/nologin buffy
-   sudo chown -R buffy:buffy /opt/buffy
+   sudo mkdir -p /opt/buffy
+   sudo chown "$USER":"$USER" /opt/buffy
    ```
 
-3. As the `buffy` user, create the virtual environment and install the app:
+3. As your normal user, create the virtual environment and install the app:
 
    ```bash
    cd /opt/buffy
@@ -75,7 +77,7 @@ For a small always-on server, `systemd` is the simplest deployment target. If Bu
    ```
 
 4. Put your real settings in `/opt/buffy/.env`.
-5. Install the service file from `deploy/buffy.service`:
+5. Install a `systemd` service that runs as your normal Linux user:
 
    ```bash
    sudo cp deploy/buffy.service /etc/systemd/system/buffy.service
@@ -93,6 +95,8 @@ For a small always-on server, `systemd` is the simplest deployment target. If Bu
 ## Notes
 
 - The service polls `/status/sessions` and sends one notification per active playback session.
+- If `NOTIFICATION_DELAY_MINUTES` is set, Buffy waits that long before notifying and skips the alert entirely if playback stops first.
 - It stores active Plex session IDs in `.state/active_sessions.json` so a process restart does not spam duplicate alerts for sessions that are already in progress.
+- If `REPEAT_PLAY_SUPPRESSION_MINUTES` is set, Buffy suppresses repeat alerts for the same user and the same video inside that time window.
 - OMDb is used for ratings because it exposes Rotten Tomatoes data when available.
 - On Linux, transient request failures are logged and retried automatically instead of crashing the process.

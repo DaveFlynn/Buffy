@@ -50,6 +50,36 @@ class DotenvTests(unittest.TestCase):
                 else:
                     os.environ["PLEX_TOKEN"] = original
 
+    def test_load_dotenv_sets_optional_repeat_suppression_minutes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_path = Path(temp_dir) / ".env"
+            env_path.write_text("REPEAT_PLAY_SUPPRESSION_MINUTES=10\n", encoding="utf-8")
+
+            original = os.environ.pop("REPEAT_PLAY_SUPPRESSION_MINUTES", None)
+            try:
+                load_dotenv(env_path)
+                self.assertEqual(os.environ["REPEAT_PLAY_SUPPRESSION_MINUTES"], "10")
+            finally:
+                if original is None:
+                    os.environ.pop("REPEAT_PLAY_SUPPRESSION_MINUTES", None)
+                else:
+                    os.environ["REPEAT_PLAY_SUPPRESSION_MINUTES"] = original
+
+    def test_load_dotenv_sets_optional_notification_delay_minutes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_path = Path(temp_dir) / ".env"
+            env_path.write_text("NOTIFICATION_DELAY_MINUTES=2\n", encoding="utf-8")
+
+            original = os.environ.pop("NOTIFICATION_DELAY_MINUTES", None)
+            try:
+                load_dotenv(env_path)
+                self.assertEqual(os.environ["NOTIFICATION_DELAY_MINUTES"], "2")
+            finally:
+                if original is None:
+                    os.environ.pop("NOTIFICATION_DELAY_MINUTES", None)
+                else:
+                    os.environ["NOTIFICATION_DELAY_MINUTES"] = original
+
 
 if __name__ == "__main__":
     unittest.main()

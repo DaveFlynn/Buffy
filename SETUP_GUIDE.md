@@ -192,6 +192,8 @@ TELEGRAM_BOT_TOKEN=123456789:your-bot-token
 TELEGRAM_CHAT_ID=-1001234567890
 OMDB_API_KEY=optional-omdb-key
 POLL_INTERVAL_SECONDS=15
+NOTIFICATION_DELAY_MINUTES=
+REPEAT_PLAY_SUPPRESSION_MINUTES=
 STATE_FILE=.state/active_sessions.json
 ```
 
@@ -220,7 +222,36 @@ OMDB_API_KEY=your-omdb-api-key
 
 If `OMDB_API_KEY` is missing, Buffy still works. It just sends notifications without ratings.
 
-## 7. Start The Notifier
+## 7. Optional Notification Delay
+
+If you want Buffy to wait before sending a play alert, set:
+
+```dotenv
+NOTIFICATION_DELAY_MINUTES=2
+```
+
+How it works:
+
+- Buffy sees a new playback and starts a timer
+- it only sends the alert if the playback is still active after that many minutes
+- if the user stops the video before the timer finishes, no alert is sent
+- if this setting is blank or missing, alerts are sent immediately
+
+## 8. Optional Repeat-Play Suppression
+
+If you want Buffy to suppress quick repeat alerts when the same user starts the same video again, set:
+
+```dotenv
+REPEAT_PLAY_SUPPRESSION_MINUTES=15
+```
+
+How it works:
+
+- Buffy remembers recent alerts by `user + video`
+- if the same user starts the same item again inside that many minutes, the alert is skipped
+- if this setting is blank or missing, Buffy reports every new playback session
+
+## 9. Start The Notifier
 
 If you use `pyenv`, select the project interpreter first:
 
@@ -235,16 +266,16 @@ pip install -e .
 python -m buffy
 ```
 
-## 8. Run Buffy On A Linux Server All The Time
+## 10. Run Buffy On A Linux Server All The Time
 
 For an always-on home server, use `systemd`.
 
 1. Copy the project to the server, for example to `/opt/buffy`.
-2. Create a dedicated service user:
+2. Make sure the directory is owned by your normal Linux user:
 
 ```bash
-sudo useradd --system --create-home --home-dir /opt/buffy --shell /usr/sbin/nologin buffy
-sudo chown -R buffy:buffy /opt/buffy
+sudo mkdir -p /opt/buffy
+sudo chown "$USER":"$USER" /opt/buffy
 ```
 
 3. Create the virtual environment and install Buffy on the server:
@@ -275,7 +306,7 @@ sudo journalctl -u buffy -f
 The included unit file expects:
 
 - the project to live at `/opt/buffy`
-- the service user and group to both be named `buffy`
+- the service to run as your normal Linux user
 - the virtual environment at `/opt/buffy/.venv`
 
 If you deploy somewhere else, edit `deploy/buffy.service` first.
